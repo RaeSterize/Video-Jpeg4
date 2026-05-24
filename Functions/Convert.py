@@ -10,19 +10,42 @@ import time
 remaining = 0
 videos = 0
 
-
+# Main Window
+app = None 
 
 videoBR = None
 audioBR = None
 fps = None
 
+vidsWithPaths = None
+vidFiles = None
+options = None
+
+outputPath = None
 outputFile = None
 
-def ConvertVideos(root, videoCollection, videoNames, outputPath, videoBitRateInt, audioBitRateInt, framesInt):
+progressWindow = None
+progress = None
+currentVideo = None
+remaining = None
 
-    # Goes through all videos in folder to calculate remaining videos for Progress Bar
-    
-    #print(outputPath)
+def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, audioBitRateInt, framesInt):
+
+    global remaining
+    global videos
+    global app
+    global videoBR
+    global audioBR
+    global fps
+    global vidsWithPaths
+    global vidFiles
+    global options
+    global outputPath
+    global outputFile
+    global progressWindow
+    global progress
+    global currentVideo
+    global remaining
 
     try:
 
@@ -30,45 +53,80 @@ def ConvertVideos(root, videoCollection, videoNames, outputPath, videoBitRateInt
         audioBR = int(audioBitRateInt)
         fps = int(framesInt)
 
-        print(f"{videoBR} {audioBR} {fps}")
 
     except ValueError:
         messagebox.showwarning(title="Option Values Not a Number", message="Please Only Use Numbers for Options")
         return
     except Exception as e:
         #messagebox.showerror(title="Unknown Error", message="Unknown Error Has Occured")
+        messagebox.showerror(title="Error", message=f"ERROR! Please Report the following to the Developer!\n\n:{type(e).__name__}")
         print(e)
         return
-
     
-    outputFile = os.listdir(outputPath)
+    print("Test 1")
+
+    app = root
+
+    vidsWithPaths = sorted(videoCollection)
+    vidFiles = sorted(videoNames)
+
+    outputPath = output
+    outputFile = sorted(os.listdir(outputPath))
 
     fileCopies = 0
+    print("Test 2")
+    
+    xLoop = 0
+    yLoop = 0
+    
+    try:
+        
+        for x in range(len(outputFile)):
+            for y in range(len(vidFiles)):
+                print(f"Loop x Index: {xLoop}\nLoop y Index: {yLoop}\n")
+                if outputFile[xLoop] == vidFiles[yLoop]:
 
-    for x in range(len(outputFile)):
-        for y in range(len(videoNames)):
-            if outputFile[x] == videoNames[y]:
-                print(f"Copy Found!\n Input File: {videoNames[y]}\n Output File: {outputFile[x]}")
-                videoNames.pop()
-                videoCollection.pop(y)
-                fileCopies += 1
-                print("Copy Found!")
-            else:
-                print("Not a copy. Ignoring...")
+                    print(f"Copy Found!\n Input File: {vidFiles[yLoop]}\nOutput File: {outputFile[xLoop]}\n")
 
+                    vidFiles.pop(yLoop)
+                    vidsWithPaths.pop(yLoop)
+                    outputFile.pop(yLoop)
+                    fileCopies += 1
+
+                    xLoop = 0
+                    yLoop = 0
+
+                    print(f"Paths: {vidsWithPaths}\nInput: {vidFiles}\n Output: {outputFile}\n")
+
+                else:
+                    print("Not a copy. Ignoring...")
+                    #print(f"File List  Currently: {videoNames}\n Output File: {outputFile}\n")
+
+
+    except Exception as e:
+        messagebox.showerror(title="Error", message=f"ERROR! Please Report the following to the Developer!\n\nDectecting Copies Failed\n:{type(e).__name__}: {e}")
+    else:
+        print("No Copies found!!")
+                 
+
+
+
+    
+    '''
+    except Exception as e:
+        messagebox.showerror(title="Error", message=f"ERROR! Please Report the following to the Developer!\n\nDectecting Copies Failed\n:{type(e).__name__}: {e}")
+    
     #print(f"Paths: {videoCollection}\n, Videos: {videoNames}")
-
 
     videos = 0
 
-    for i in range(len(videoNames)):
+    for i in range(len(vidFiles)):
         videos += 1    
 
     print(videos)
 
     # Checks if Output is Valid
     if os.path.exists(outputPath):
-
 
         startConvert = messagebox.askquestion(title="Confirm?", message="Do You Want to Convert Videos?")
         
@@ -95,89 +153,59 @@ def ConvertVideos(root, videoCollection, videoNames, outputPath, videoBitRateInt
             remaining = 100 / videos
             print(f"Remaining: {remaining}")
 
-            vidBitStr = str(videoBitRateInt)
-            audBitStr = str(audioBitRateInt)
-            framesStr = str(framesInt)
+            vidioBRStr = str(videoBR)
+            audioBRStr = str(audioBR)
+            fpsStr = str(fps)
 
-            options = f'-b:v {vidBitStr}k -b:a {audBitStr}k -r {framesStr}'
+            options = f'-b:v {vidioBRStr}k -b:a {audioBRStr}k -r {fpsStr}'
 
-            StartFFmpeg(progressWindow, videoCollection, videoNames, options, outputPath, progress, remaining)
-
-            '''
-            try:
-                #progress['value'] += remaining
-    
-            except Exception as e:
-                messagebox.showerror(message=e)
-                root.bell()
-            else:
-                currentVideo.config(text="Finished!")
-            '''     
-                        
+ 
+            StartFFmpeg() 
             
-        #progressWindow.mainloop()
+            return remaining, videos, app, videoBR, audioBR, fps, vidsWithPaths, vidFiles, options, outputPath, outputFile, progressWindow, progress, currentVideo, remaining
+                        
+
+    
 
     else:
         messagebox.showerror(title="Folders Not Set",message="Folders Not Found, Please Setup Folder Paths.")
+    '''
 
 # ===========
 #   Threads
 # ===========
 
-def StartFFmpeg(root, vidCollection, videos, options, outputPath, progress, remaining):
-    threading.Thread(target=FFmpegThread, args=(root, vidCollection, videos, options, outputPath, progress, remaining)).start()
+def StartFFmpeg():
+    print("Starting Thread...")
+    threading.Thread(target=FFmpegThread).start()
 
-
-def FFmpegThread(root, vidCollection, videos, options, outputPath, progress, remaining):
+def FFmpegThread():
 
     print("Thread Entered!!")
 
-    outputVar = outputPath + "/" + videos[0]
+    outputVar = f"{outputPath}/{vidFiles[0]}"
 
-    ffmpeg_cmd = f'ffmpeg -i "{vidCollection[0]}" {options} "{outputVar}"'
+    ffmpeg_cmd = f'ffmpeg -i "{vidsWithPaths[0]}" {options} "{outputVar}"'
     print(ffmpeg_cmd)
 
     subprocess.run(ffmpeg_cmd, check=True)
-    root.after(20, VideoQueue(root, vidCollection, videos, options, outputPath, progress, remaining))
+    app.after(20, VideoQueue())
 
-def VideoQueue(root, vidCollection, videos, options, outputPath, progress, remaining):
+def VideoQueue():
 
     print("Entered Queue!!")
-
-    print(f"Remaining: {remaining}")
 
     progress['value'] += remaining
 
     print(progress['value'])
 
-    vidCollection.pop(0)
-    videos.pop(0)
+    vidsWithPaths.pop(0)
+    vidFiles.pop(0)
 
-    if vidCollection and  videos:
+    if vidsWithPaths and  videos:
         print("Loading Next Video...")
-        FFmpegThread(root, vidCollection, videos, options, outputPath, progress, remaining)
+        FFmpegThread()
     else:
         messagebox.showinfo(title="Conversion Successful!", message="Files Have Been Converted!")  
-        root.destroy()  
-
-'''
-
-def StringToValue(videoBitRate, audioBitRate, frames):
-
-    try:
-
-        audioBitRateInt = int(audioBitRate)
-        videoBitRateInt = int(videoBitRate)
-        framesInt = int(frames)
-
-        #print(f"{audioBitRateInt} {videoBitRateInt} {framesInt}")
-
-    except ValueError:
-        messagebox.showwarning(title="Option Values Not a Number", message="Please Only Use Numbers for Options")
-    except Exception as e:
-        #messagebox.showerror(title="Unknown Error", message="Unknown Error Has Occured")
-        print(e)
-
-    return videoBitRate, audioBitRate, frames
-'''
+        progressWindow.destroy()  
 
