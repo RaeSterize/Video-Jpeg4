@@ -52,6 +52,8 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
     global currentVideo
     global remaining
 
+
+
     try:
 
         videoBR = int(videoBitRateInt)
@@ -68,8 +70,6 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
         print(e)
         return
     
-    print("Test 1")
-
     app = root
 
     vidsWithPaths = sorted(videoCollection)
@@ -79,47 +79,71 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
     outputFile = sorted(os.listdir(outputPath))
 
     fileCopies = 0
-    print("Test 2")
-    
-    xLoop = 0
-    yLoop = 0
-    
-    print(f"{vidFiles}\n{vidsWithPaths}")
-
     videos = 0
 
     for i in range(len(vidFiles)):
         videos += 1    
     
+    copiesLoop = True
+    
+    inputLoop = 0
+    outputLoop = 0
+
     try:
+
+
+
+        global loopInputPath
+        global loopVids
 
         loopInputPath = vidsWithPaths.copy()
         loopVids = vidFiles.copy()
         loopOutputVids = outputFile.copy()
 
-        for x in range(len(loopOutputVids)):
-            for y in range(len(loopVids)):
-                print(f"Loop X Index: {xLoop}\nLoop Y Index: {yLoop}\n")
-                if loopOutputVids[xLoop] == loopVids[yLoop]:
+        while loopOutputVids: #copiesLoop == True:
 
-                    #print(f"Copy Found!\n Input File: {loopVids[yLoop]}\nOutput File: {loopOutputVids[xLoop]}\n")
+            print("Loop Started!!!\n")
+            
+            print(f"Videos in Output: {loopOutputVids}\n")
+            print(f"Index from Loop: {loopVids[inputLoop]}")
+            print(f"Index from Loop: {loopVids[inputLoop]}")
+            print(f"Index from Output: {loopOutputVids[outputLoop]}")
 
-                    loopVids.pop(yLoop)
-                    loopInputPath.pop(yLoop)
-                    loopOutputVids.pop(yLoop)
+            print("Getting List Lengths...")
+            inputMax = len(loopVids)
+            outputMax = len(loopOutputVids)
+            print(f"Input: {outputLoop}\nOutput: {inputLoop}\n")
+
+            print("Checking for copies...\n")
+            if loopOutputVids[outputLoop] == loopVids[inputLoop]:
+
+                    print(f"Copy Found!\nInput File: {loopVids[inputLoop]}\nOutput File: {loopOutputVids[outputLoop]}\n")
+                    print("Popping elements...\n")
+                    loopVids.pop(inputLoop)
+                    loopInputPath.pop(inputLoop)
+                    loopOutputVids.pop(outputLoop)
+
+
                     fileCopies += 1
+                    print(f"Copies found: {fileCopies}\n")
 
-                    xLoop = 0
-                    yLoop = 0
-
+                    print(f"Resetting Loops...\nInput: {outputLoop}\nOutput: {inputLoop}\nRemoving video from total videos...\n")
+                    outputLoop = 0
+                    inputLoop = 0
                     videos -= 1
+            else:
+                print("Not a copy, skipping...")
+                print("Increasing Input Loop...\n")
+                inputLoop += 1
 
-                    #print(f"Paths: {loopInputPath}\nInput: {loopVids}\n Output: {loopOutputVids}\n")
+                if inputLoop > inputMax:
+                    print("Resetting Inner Input...\nIncreasing Output Loop...")
+                    inputLoop = 0
+                    outputLoop += 1
+                elif outputLoop > outputMax:
+                    print("Resetting output Input...")
+                    outputLoop = 0
 
-                else:
-                    pass
-                    #print("Not a copy. Ignoring...")
-                    #print(f"File List  Currently: {videoNames}\n Output File: {outputFile}\n")
 
         if fileCopies > 0:
             print(f"{fileCopies} Copies Found!!")
@@ -129,12 +153,14 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
     except Exception as e:
         messagebox.showerror(title="Error", message=f"ERROR! Please Report the following to the Developer!\n\nDectecting Copies Failed\n:{type(e).__name__}: {e}")
 
-    '''
+    
 
     print(f"{vidFiles}\n{vidsWithPaths}")
 
 
     print(videos)
+
+    print(f"Videos from Loop: {loopVids}")
 
     # Checks if Output is Valid
     if os.path.exists(outputPath):
@@ -152,7 +178,8 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
                 if overwriteAnswer == True:
                     startArgs = "ffmpeg -y"
                 elif overwriteAnswer == False:
-                    startArgs = "ffmpeg -d"
+                    vidFiles = loopVids
+                    vidsWithPaths = loopInputPath
 
             if videos <= 0:
                 return
@@ -180,26 +207,21 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
 
             options = f'-b:v {vidioBRStr}k -b:a {audioBRStr}k -r {fpsStr}'
 
- 
+            print("Starting Thread...")
             StartFFmpeg() 
             
             return remaining, videos, app, startArgs, videoBR, audioBR, fps, vidsWithPaths, vidFiles, options, outputPath, outputFile, progressWindow, progress, currentVideo, remaining
-              
 
-    
 
     else:
-        messagebox.showerror(title="Folders Not Set",message="Folders Not Found, Please Setup Folder Paths.")
-
-    '''
-    
+        messagebox.showerror(title="Folders Not Set",message="Folders Not Found, Please Setup Folder Paths.")    
 
 # ===========
 #   Threads
 # ===========
 
 def StartFFmpeg():
-    print("Starting Thread...")
+    print("starting FFmpeg")
     threading.Thread(target=FFmpegThread).start()
 
 def FFmpegThread():
@@ -216,6 +238,7 @@ def FFmpegThread():
         app.after(20, VideoQueue())
     except Exception as e:
         messagebox.showerror(title="Error", message=f"ERROR! Please Report the following to the Developer!\n\nDectecting Copies Failed\n:{type(e).__name__}: {e}")
+        print(f"{type(e).__name__}: {e}")
 
 
 def VideoQueue():
