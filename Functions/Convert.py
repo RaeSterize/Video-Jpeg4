@@ -13,6 +13,8 @@ videos = 0
 # Main Window
 app = None 
 
+startArgs = None
+
 videoBR = None
 audioBR = None
 fps = None
@@ -34,6 +36,8 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
     global remaining
     global videos
     global app
+
+    global startArgs
     global videoBR
     global audioBR
     global fps
@@ -42,6 +46,7 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
     global options
     global outputPath
     global outputFile
+
     global progressWindow
     global progress
     global currentVideo
@@ -79,49 +84,55 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
     xLoop = 0
     yLoop = 0
     
-    try:
-        
-        for x in range(len(outputFile)):
-            for y in range(len(vidFiles)):
-                print(f"Loop x Index: {xLoop}\nLoop y Index: {yLoop}\n")
-                if outputFile[xLoop] == vidFiles[yLoop]:
-
-                    print(f"Copy Found!\n Input File: {vidFiles[yLoop]}\nOutput File: {outputFile[xLoop]}\n")
-
-                    vidFiles.pop(yLoop)
-                    vidsWithPaths.pop(yLoop)
-                    outputFile.pop(yLoop)
-                    fileCopies += 1
-
-                    xLoop = 0
-                    yLoop = 0
-
-                    print(f"Paths: {vidsWithPaths}\nInput: {vidFiles}\n Output: {outputFile}\n")
-
-                else:
-                    print("Not a copy. Ignoring...")
-                    #print(f"File List  Currently: {videoNames}\n Output File: {outputFile}\n")
-
-
-    except Exception as e:
-        messagebox.showerror(title="Error", message=f"ERROR! Please Report the following to the Developer!\n\nDectecting Copies Failed\n:{type(e).__name__}: {e}")
-    else:
-        print("No Copies found!!")
-                 
-
-
-
-    
-    '''
-    except Exception as e:
-        messagebox.showerror(title="Error", message=f"ERROR! Please Report the following to the Developer!\n\nDectecting Copies Failed\n:{type(e).__name__}: {e}")
-    
-    #print(f"Paths: {videoCollection}\n, Videos: {videoNames}")
+    print(f"{vidFiles}\n{vidsWithPaths}")
 
     videos = 0
 
     for i in range(len(vidFiles)):
         videos += 1    
+    
+    try:
+
+        loopInputPath = vidsWithPaths.copy()
+        loopVids = vidFiles.copy()
+        loopOutputVids = outputFile.copy()
+
+        for x in range(len(loopOutputVids)):
+            for y in range(len(loopVids)):
+                print(f"Loop X Index: {xLoop}\nLoop Y Index: {yLoop}\n")
+                if loopOutputVids[xLoop] == loopVids[yLoop]:
+
+                    #print(f"Copy Found!\n Input File: {loopVids[yLoop]}\nOutput File: {loopOutputVids[xLoop]}\n")
+
+                    loopVids.pop(yLoop)
+                    loopInputPath.pop(yLoop)
+                    loopOutputVids.pop(yLoop)
+                    fileCopies += 1
+
+                    xLoop = 0
+                    yLoop = 0
+
+                    videos -= 1
+
+                    #print(f"Paths: {loopInputPath}\nInput: {loopVids}\n Output: {loopOutputVids}\n")
+
+                else:
+                    pass
+                    #print("Not a copy. Ignoring...")
+                    #print(f"File List  Currently: {videoNames}\n Output File: {outputFile}\n")
+
+        if fileCopies > 0:
+            print(f"{fileCopies} Copies Found!!")
+        else:
+            print("No Copies found!!")
+                    
+    except Exception as e:
+        messagebox.showerror(title="Error", message=f"ERROR! Please Report the following to the Developer!\n\nDectecting Copies Failed\n:{type(e).__name__}: {e}")
+
+    '''
+
+    print(f"{vidFiles}\n{vidsWithPaths}")
+
 
     print(videos)
 
@@ -132,12 +143,22 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
         
         if startConvert == "yes":
 
-            if fileCopies > 0:
-                overwriteAnswer = messagebox.askquestion(icon="warning",title="Overwrite?", message=f"There are {fileCopies} videos that share the same name.\nDo you wish to overwrite them?")
-                if overwriteAnswer == "no":
-                    return
-        
+            startArgs = "ffmpeg"
 
+            if fileCopies > 0:
+                
+                overwriteAnswer = messagebox.askyesnocancel(icon="warning",title="Overwrite?", message=f"There are {fileCopies} videos that share the same name.\nDo you wish to overwrite them?")
+                
+                if overwriteAnswer == True:
+                    startArgs = "ffmpeg -y"
+                elif overwriteAnswer == False:
+                    startArgs = "ffmpeg -d"
+
+            if videos <= 0:
+                return
+
+            print(startArgs)
+        
             progressWindow = Toplevel()
 
             progressWindow.update()
@@ -162,14 +183,16 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
  
             StartFFmpeg() 
             
-            return remaining, videos, app, videoBR, audioBR, fps, vidsWithPaths, vidFiles, options, outputPath, outputFile, progressWindow, progress, currentVideo, remaining
-                        
+            return remaining, videos, app, startArgs, videoBR, audioBR, fps, vidsWithPaths, vidFiles, options, outputPath, outputFile, progressWindow, progress, currentVideo, remaining
+              
 
     
 
     else:
         messagebox.showerror(title="Folders Not Set",message="Folders Not Found, Please Setup Folder Paths.")
+
     '''
+    
 
 # ===========
 #   Threads
@@ -181,15 +204,19 @@ def StartFFmpeg():
 
 def FFmpegThread():
 
-    print("Thread Entered!!")
+    try:
+        print("Thread Entered!!")
 
-    outputVar = f"{outputPath}/{vidFiles[0]}"
+        outputVar = f"{outputPath}/{vidFiles[0]}"
 
-    ffmpeg_cmd = f'ffmpeg -i "{vidsWithPaths[0]}" {options} "{outputVar}"'
-    print(ffmpeg_cmd)
+        ffmpeg_cmd = f'{startArgs} -i "{vidsWithPaths[0]}" {options} "{outputVar}"'
+        print(ffmpeg_cmd)
 
-    subprocess.run(ffmpeg_cmd, check=True)
-    app.after(20, VideoQueue())
+        subprocess.run(ffmpeg_cmd, check=True)
+        app.after(20, VideoQueue())
+    except Exception as e:
+        messagebox.showerror(title="Error", message=f"ERROR! Please Report the following to the Developer!\n\nDectecting Copies Failed\n:{type(e).__name__}: {e}")
+
 
 def VideoQueue():
 
@@ -208,4 +235,3 @@ def VideoQueue():
     else:
         messagebox.showinfo(title="Conversion Successful!", message="Files Have Been Converted!")  
         progressWindow.destroy()  
-
