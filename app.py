@@ -1,10 +1,9 @@
 from tkinter import *
 from tkinter import filedialog
-import ctypes
-
+from tkinter import messagebox
 from Functions import Buttons as Btn
 from Functions import Convert as Cvrt
-
+import ctypes
 
 window = Tk()
 
@@ -17,6 +16,9 @@ ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 # ===============
 mainColor = "#312E2E"
 textColor = "#FFFFFF"
+
+videoNames = None
+videoCollection = None
 
 # ===============
 #Defining Window
@@ -37,10 +39,23 @@ def AddButton():
     global videoNames
     global videoCollection
 
-    videoNames = []
-    videoCollection = []
+    inputVideos = []
+    inputCollection = []
 
-    videoCollection, videoNames = Btn.VideoManager(videoCollection, videoNames, window, True)
+    try:        
+        #videoCollection, videoNames = Btn.VideoManager(videoCollection, videoNames, window)
+        inputCollection, inputVideos = Btn.VideoManager(inputCollection, inputVideos, window)              
+    except TypeError:
+        print("No Videos Selected Or Cancelled...")
+        print(f"Paths: {videoCollection}\nVideos: {videoNames}")
+    except Exception as e:
+        messagebox.showerror(title="Error", message=f"ERROR! Please Report the following to the Developer!\n\nAssigning Files Failed:\n:{type(e).__name__}: {e}")
+    else:
+        print("Inserting Videos...")
+        videoCollection, videoNames = inputCollection, inputVideos
+        VideoBoxListRefresh()
+        print(f"Paths: {videoCollection}\nVideos: {videoNames}")
+        return videoCollection, videoNames
 
 
 def RemoveButton():
@@ -50,6 +65,8 @@ def RemoveButton():
     for videos in selectedVideos[::-1]:
         del videoCollection[videos]
         del videoNames[videos]
+
+    print(f"Paths: {videoCollection}\nVideos: {videoNames}")
     
 def VideoBoxListRefresh():
 
@@ -68,9 +85,10 @@ def Output():
         try:
             outputPath.delete(0,END)
             outputPath.insert(0,filepath)
-
         except Exception as e:
             print(e) 
+    else:
+        return
 
 
 def Convert():
@@ -88,7 +106,7 @@ def Convert():
 # Input Folder
 # ===============
 
-InputFileButton = Button(window, text="Add Videos",padx=5,command=lambda:[AddButton(), VideoBoxListRefresh()]).place(x=20,y=90)
+InputFileButton = Button(window, text="Add Videos",padx=5,command=lambda:[AddButton()]).place(x=20,y=90)
 RemoveFileButton = Button(window, text="Remove Videos",padx=5, command=lambda:[RemoveButton(), VideoBoxListRefresh()]).place(x=105,y=90)
 
 # ===============

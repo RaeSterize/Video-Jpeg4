@@ -91,8 +91,6 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
 
     try:
 
-
-
         global loopInputPath
         global loopVids
 
@@ -100,7 +98,8 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
         loopVids = vidFiles.copy()
         loopOutputVids = outputFile.copy()
 
-        while loopOutputVids: #copiesLoop == True:
+        # While logged videos from Output is not empty, run this code
+        while loopOutputVids: 
 
             print("Loop Started!!!\n")
             
@@ -119,6 +118,9 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
 
                     print(f"Copy Found!\nInput File: {loopVids[inputLoop]}\nOutput File: {loopOutputVids[outputLoop]}\n")
                     print("Popping elements...\n")
+                    # Look into making it so it adds to a list instead
+                    # This removes the temporary variables & makes it so if all videos are copies in the output,
+                    # they will override the whole folder instead of doing nothing due to list being empty
                     loopVids.pop(inputLoop)
                     loopInputPath.pop(inputLoop)
                     loopOutputVids.pop(outputLoop)
@@ -149,6 +151,8 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
             print(f"{fileCopies} Copies Found!!")
         else:
             print("No Copies found!!")
+
+            
                     
     except Exception as e:
         messagebox.showerror(title="Error", message=f"ERROR! Please Report the following to the Developer!\n\nDectecting Copies Failed\n:{type(e).__name__}: {e}")
