@@ -7,7 +7,7 @@ import ctypes
 
 window = Tk()
 
-icon = PhotoImage(file="icon.png")
+icon = PhotoImage(file="Images/icon.png")
 myappid = 'mycompany.myproduct.subproduct.version'
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
@@ -24,7 +24,7 @@ videoCollection = None
 #Defining Window
 # ===============
 window.geometry("610x360")
-window.title("Rae's Video Crappifier")
+window.title("Video Jpeg4")
 window.iconphoto(True, icon)
 window.config(background=mainColor)
 
@@ -95,6 +95,8 @@ def Convert():
 
     try:
 
+        print(f"videoNames: {videoNames}\nvideoList: {videoList.get(0, END)}\nvideoCollection: {videoCollection}\n")
+
         #videoNum, audioNum, framesNum = Cvrt.StringToValue(videoBitRate.get(), audioBitRate.get(), frames.get())
 
         Cvrt.ConvertVideos(window, videoCollection, videoNames, outputPath.get(), videoBitRate.get(), audioBitRate.get(), frames.get())
@@ -138,7 +140,7 @@ frames = Spinbox(window, width=4, from_=1, to=10000)
 frames.place(x=370,y=40)
 framesLabel = Label(window,text="Frames",bg=mainColor,fg=textColor).place(x=413,y=40)
 
-exportButton = Button(window, text="Commence Enshitification", command=Convert, compound=TOP).place(x=435,y=90)
+exportButton = Button(window, text="Start Jpeg-ifying", command=Convert, compound=TOP).place(x=488,y=90)
 
 videoList = Listbox(window,width=93, height=13, relief="sunken",borderwidth=2,selectmode="multiple")
 videoList.place(x=20,y=120)
