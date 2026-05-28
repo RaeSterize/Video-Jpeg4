@@ -26,7 +26,7 @@ VideoPathsList = None
 # ===============
 window.resizable(False, False)
 window.geometry("610x360")
-window.title("Video Jpeg4")
+window.title("Video Jpeg4 (Pre-Release v1.0)")
 window.iconphoto(True, icon)
 window.config(background=mainColor)
 
@@ -98,14 +98,13 @@ def Output():
     else:
         return
 
-
 def Convert():
 
     try:
 
         print(f"videoNames: {videoNames}\nVideoTextBox: {VideoTextBox.get(0, END)}\nVideoPathsList: {VideoPathsList}\n")
 
-        Cvrt.ConvertVideos(window, VideoPathsList, videoNames, outputPath.get(), videoBitRate.get(), audioBitRate.get(), frames.get())
+        Cvrt.ConvertVideos(window, videoNames, VideoPathsList, outputPath.get(), videoBitRate.get(), audioBitRate.get(), frames.get())
 
     except Exception as e:
         print(e)
@@ -145,9 +144,13 @@ frames = Spinbox(window, width=4, from_=1, to=10000)
 frames.place(x=370,y=40)
 framesLabel = Label(window,text="Frames",bg=mainColor,fg=textColor).place(x=413,y=40)
 
-renderIterations = Spinbox(window, width=2, from_=1, to=10000)
-renderIterations.place(x=470,y=40)
-renderIterationsLabel = Label(window,text="Render Iterations",bg=mainColor,fg=textColor).place(x=500,y=40)
+
+# Planned Future Feature - Renders video a set amount of times to lower the quality futher
+# Another Planed Feature - Lowers resolution while keeping aspect ration to help with compression
+
+#renderIterations = Spinbox(window, width=2, from_=1, to=10000)
+#renderIterations.place(x=470,y=40)
+#renderIterationsLabel = Label(window,text="Render Iterations",bg=mainColor,fg=textColor).place(x=500,y=40)
 
 # ===============
 # Export Stuff

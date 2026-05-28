@@ -19,8 +19,8 @@ videoBR = None
 audioBR = None
 fps = None
 
-vidsWithPaths = None
-vidFiles = None
+inputPaths = None
+inputVideos = None
 options = None
 
 outputPath = None
@@ -35,7 +35,8 @@ ProcessingText = None
 QueueVideoTitle = "..."
 remaining = None
 
-def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, audioBitRateInt, framesInt):
+def ConvertVideos(root, getInputVideos, getInputPaths, getOutputPath, getVideoBitRate, getAudioBitRate, getFrames):
+    pass
 
     print("Button Clicked!!\n Getting Variables...")
 
@@ -43,8 +44,8 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
     global videos
     global app
 
-    global vidsWithPaths
-    global vidFiles
+    global inputPaths
+    global inputVideos
 
     global startArgs
     global videoBR
@@ -64,29 +65,26 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
     global QueueVideoTitle
     global remaining
     
-    print(f"Inside function:\n {videoNames}\n {videoCollection}")
-
-
     app = root
 
     # Checks to see if the following following values are valid:
     # - Bitrates & FPS
     # - Input Videos & Paths 
-    # - Output Videos & Paths 
+    # - getOutputPath Videos & Paths 
     try:
 
-        videoBR = int(videoBitRateInt)
-        audioBR = int(audioBitRateInt)
-        fps = int(framesInt)
+        videoBR = int(getVideoBitRate)
+        audioBR = int(getAudioBitRate)
+        fps = int(getFrames)
         print(f"{printSpacer}\nBitrate & FPS set!")
 
-        vidsWithPaths = sorted(videoCollection)
-        vidFiles = sorted(videoNames)
+        inputPaths = sorted(getInputPaths)
+        inputVideos = sorted(getInputVideos)
         print("Input Videos & Paths Set!")
 
-        outputPath = output
+        outputPath = getOutputPath
         outputFile = sorted(os.listdir(outputPath))
-        print(f"Output Videos & Paths Set!\n{printSpacer}\n")
+        print(f"Path Videos & Paths Set!\n{printSpacer}\n")
         
     except TypeError:
         ErrorHandler("", "No Videos Added")
@@ -101,58 +99,53 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
         ErrorHandler(e, "Failed to retrieve values")
         return
     
-    
+    #Checks for total videos inside 
     videos = 0
-
-    print("Checking Total Videos...\n")
-
-    for i in range(len(vidFiles)):
+    for i in range(len(inputVideos)):
         videos += 1    
 
-    # Checking for Video Copies
+
+
+    # This code block checks if files in the Output share the same name as any of the files in the Input
+    # If the user has files with the same name and wishes to not overwrite them, this knows what files to ignore.
+
     try:
 
-        sharedNameLoop = True
+        # Defining Variables
 
         global fileCopies
         global videoSkipList
         global videoSkipListPaths
         fileCopies = 0
         videoSkipList = []
-        videoSkipListPaths= vidsWithPaths.copy()
+        videoSkipListPaths= inputPaths.copy()
 
-        videoSkipIndexes = []
-
-        inputMax = len(vidFiles) - 1
+        inputMax = len(inputVideos) - 1
         outputMax = len(outputFile) - 1
 
-        #if outputMax < 0:
-            #outputMax = 0
-
+        sharedNameLoop = True
         inputLoopIndex = 0
         outputLoopIndex = 0
+        videoSkipTotal = videos
+        videoSkipIndexes = []
 
-        videosSkipTotal = videos
-        
-        print(f"{vidFiles}\n{vidsWithPaths}")
-
-        # While logged videos from Output is not empty, run this code
         if outputMax >= 0:
+
             while sharedNameLoop == True: 
 
                 print("Loop Started!!!\n")
 
-                print(f"{printSpacer}\nInput Index: {inputLoopIndex} | Output Index: {outputLoopIndex}\nInput Max: {inputMax} | Output Max: {outputMax}\n{printSpacer}\n")
+                print(f"{printSpacer}\nInput Index: {inputLoopIndex} | getOutputPath Index: {outputLoopIndex}\nInput Max: {inputMax} | getOutputPath Max: {outputMax}\n{printSpacer}\n")
 
-                # If all files have not been scanned.
+                # Starts checking if a file in Output shares a name from any files in the Input
                 if inputLoopIndex <= inputMax and outputLoopIndex <= outputMax: 
 
                     print("Checking for shared names...\n")
 
-                    # If copy found, add to ignore list to avoid
-                    if vidFiles[inputLoopIndex] == outputFile[outputLoopIndex]:
+                    # If one has been found, add input index to list.
+                    if inputVideos[inputLoopIndex] == outputFile[outputLoopIndex]:
 
-                        print(f"{fileCopies} shared names found! Adding current file to overwrite ignore list...\nFile: {vidFiles[inputLoopIndex]}")
+                        print(f"{fileCopies} shared names found! Adding index to overwrite ignore list...\nFile: {inputVideos[inputLoopIndex]}")
 
                         fileCopies += 1
 
@@ -166,35 +159,33 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
                         print("File does not share a name, skipping...\n")
                         outputLoopIndex += 1
 
-                # If current Output File does not match.
+                # If current Output file does not match, add to skip list & check the next file in queue.
                 elif outputLoopIndex > outputMax:
                     
-                    print(f"File: {vidFiles[inputLoopIndex]} does not share a name with output, adding to non-copy queue...\n")
+                    print(f"File: {inputVideos[inputLoopIndex]} does not share a name with getOutputPath, adding to non-copy queue...\n")
 
-                    videoSkipList.append(vidFiles[inputLoopIndex])
+                    videoSkipList.append(inputVideos[inputLoopIndex])
                     
                     inputLoopIndex += 1
                     outputLoopIndex = 0
 
-                #Scanning Done
+                # Scanning Done
                 else:
 
                     print(f"Finished!!\nThere were {fileCopies} shared names Found!\n")
 
-                                
-
-                    #Removes same name videos from list when asked to ignore copies.
+                    # Get a list that copies elements from Input Path List & a variable that copies the total Input videos
+                    # Pop each video index that shares a name in Output & removes set number of files from skip total.
                     for i in (range(len(videoSkipIndexes))):
 
                         print(f"Pop Values: {videoSkipIndexes}")
                         print(f"Non-Shared File Paths: {videoSkipListPaths}\n")
-                        print(f"Current Skippable Videos: {videosSkipTotal}\n")  
+                        print(f"Current Skippable Videos: {videoSkipTotal}\n")  
 
+                        print("Removing from video total...")
+                        videoSkipTotal -= 1
 
-                        print("Removing video from non-copy list")
-                        videosSkipTotal -= 1
-
-                        print("popping...")
+                        print("popping from list...")
                         videoSkipListPaths.pop(videoSkipIndexes[i] - i)
 
                     sharedNameLoop = False
@@ -203,7 +194,7 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
 
         if fileCopies > 0:
 
-            print(f"{fileCopies} Copies Found!!\nTotal Videos to Skip for Override: {videosSkipTotal}")
+            print(f"{fileCopies} Copies Found!!\nTotal Videos to Skip for Override: {videoSkipTotal}")
         else:
             print("No Copies found!!")
 
@@ -218,22 +209,22 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
     
     if startConvert == "yes":
 
-        #startArgs = "ffmpeg"
-
         if fileCopies > 0:
 
+            # Warning when shared names are detected
             warningText = f"There are {fileCopies} videos that share the same name."
-            if videosSkipTotal == 0:
+            if videoSkipTotal == 0:
                 warningText = "All selected files share the same name."
-
             overwriteAnswer = messagebox.askyesnocancel(icon="warning",title="Overwrite?", message=f"{warningText}\n    Do you wish to overwrite them?\n\n           Yes: Overwrite | No: Skip")
             
+            # Yes: Skip ask prompt ffmpeg gives when converting file of the same name.
+            # No: Replace Videos, Paths & Total Videos from Input with values made when detecting copies, ignoring files that share names. 
             if overwriteAnswer == True:
                 startArgs = "ffmpeg -y"
             elif overwriteAnswer == False:
-                videos = videosSkipTotal
-                vidFiles = videoSkipList
-                vidsWithPaths = videoSkipListPaths
+                videos = videoSkipTotal
+                inputVideos = videoSkipList
+                inputPaths = videoSkipListPaths
                 if videos == 0:
                     return
             else:
@@ -253,53 +244,59 @@ def ConvertVideos(root, videoCollection, videoNames, output, videoBitRateInt, au
         remaining = 100 / videos
         print(f"Remaining: {remaining}")
 
-        vidioBRStr = str(videoBR)
-        audioBRStr = str(audioBR)
-        fpsStr = str(fps)
+        #vidioBRStr = str(videoBR)
+        #audioBRStr = str(audioBR)
+        #fpsStr = str(fps)
 
-        options = f'-b:v {vidioBRStr}k -b:a {audioBRStr}k -r {fpsStr}'
+        # Adding options to a string for ffmpeg commmand
+        options = f'-b:v {str(videoBR)}k -b:a {str(audioBR)}k -r {str(fps)}'
 
         print("Starting Thread...")
         StartFFmpeg() 
         
-        return remaining, videos, app, startArgs, videoBR, audioBR, fps, vidsWithPaths, vidFiles, options, outputPath, outputFile, progressWindow, progress, ProcessingText, QueueVideoTitle, remaining
+        # Returns these values to be used outside this function
+        return remaining, videos, app, startArgs, videoBR, audioBR, fps, inputPaths, inputVideos, options, outputPath, outputFile, progressWindow, progress, ProcessingText, QueueVideoTitle, remaining
 
 
 # ===========
 #   Threads
 # ===========
 
+# Moves converting to new process to not affect Progress Bar Window
 def StartFFmpeg():
     print("starting FFmpeg")
     threading.Thread(target=FFmpegThread).start()
 
 def FFmpegThread():
 
-    QueueTitleLimit = 40
-
     try:
         
-        print(vidFiles[0])
+        print(inputVideos[0])
         print("Thread Entered!!")
         
-        
-        QueueVideoTitle = vidFiles[0]
+        # Displays current video title in Progress Bar
+        QueueTitleLimit = 40
+        QueueVideoTitle = inputVideos[0]
         if len(QueueVideoTitle) > QueueTitleLimit:
             QueueVideoTitle = f"{QueueVideoTitle[0:QueueTitleLimit]}..."
         ProcessingText.config(text=f"Converting: {QueueVideoTitle}")
         print("Title Entered!!")    
 
-        outputVar = f"{outputPath}/{vidFiles[0]}"
+        # Setting up command line for loop iiteration
+        finalOutput = f"{outputPath}/{inputVideos[0]}"
 
-        print("Conversion Starting...")    
-        ffmpeg_cmd = f'{startArgs} -i "{vidsWithPaths[0]}" {options} "{outputVar}"'
+        ffmpeg_cmd = f'{startArgs} -i "{inputPaths[0]}" {options} "{finalOutput}"'
+        
         print(ffmpeg_cmd)
         print("Command Line Set!!!")
 
+        # Starts converting
         subprocess.run(ffmpeg_cmd, check=True)
         app.after(20, VideoQueue())
         print("Conversion Finished!")
+
     except Exception as e:
+
         ErrorHandler(e, "Conversion has failed")
         print(f"{type(e).__name__}: {e}")
 
@@ -313,10 +310,12 @@ def VideoQueue():
 
     print(f"Video Progress: {int(progress['value'])}%")
 
-    vidsWithPaths.pop(0)
-    vidFiles.pop(0)
+    # Removes converted video
+    inputPaths.pop(0)
+    inputVideos.pop(0)
 
-    if vidsWithPaths:# and  videos:
+    # Checks if files still exist in Input list
+    if inputPaths:
         print("Loading Next Video...")
         FFmpegThread()
     else:
