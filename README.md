@@ -20,5 +20,5 @@ Program isn't likely to be updated much since it was mainly a side thing for lea
 Feel free to fork this for whatever project you wish!!
 
 # This program requires ffmpeg to be installed! 
-You can watch this for a quick & simple installation!
-https://www.youtube.com/watch?v=K7znsMo_48I
+You can watch this for a quick & simple [installation!](https://www.youtube.com/watch?v=K7znsMo_48I)
+
