@@ -7,6 +7,7 @@ import ctypes
 
 window = Tk()
 
+
 icon = PhotoImage(file="Images/icon.png")
 myappid = 'mycompany.myproduct.subproduct.version'
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
@@ -18,74 +19,81 @@ mainColor = "#312E2E"
 textColor = "#FFFFFF"
 
 videoNames = None
-videoCollection = None
+VideoPathsList = None
 
 # ===============
 #Defining Window
 # ===============
+window.resizable(False, False)
 window.geometry("610x360")
 window.title("Video Jpeg4")
 window.iconphoto(True, icon)
 window.config(background=mainColor)
 
-
 # ===============
 # Functions
 # ===============
 
-
 def AddButton():
 
     global videoNames
-    global videoCollection
+    global VideoPathsList
 
     inputVideos = []
     inputCollection = []
 
     try:        
-        #videoCollection, videoNames = Btn.VideoManager(videoCollection, videoNames, window)
-        inputCollection, inputVideos = Btn.VideoManager(inputCollection, inputVideos, window)              
+
+        inputCollection, inputVideos = Btn.AddVideoManager(inputCollection, inputVideos, window)    
+
     except TypeError:
-        print("No Videos Selected Or Cancelled...")
-        print(f"Paths: {videoCollection}\nVideos: {videoNames}")
+
+        print("No Videos Selected Or Cancelled.\n")
+        print(f"Paths: {VideoPathsList}\nVideos: {videoNames}\n")
+
     except Exception as e:
-        messagebox.showerror(title="Error", message=f"ERROR! Please Report the following to the Developer!\n\nAssigning Files Failed:\n:{type(e).__name__}: {e}")
+
+        Cvrt.ErrorHandler(e, "Assigning Files Failed")
+
     else:
+
         print("Inserting Videos...")
-        videoCollection, videoNames = inputCollection, inputVideos
+        VideoPathsList, videoNames = inputCollection, inputVideos
         VideoBoxListRefresh()
-        print(f"Paths: {videoCollection}\nVideos: {videoNames}")
-        return videoCollection, videoNames
+        print(f"Paths: {VideoPathsList}\nVideos: {videoNames}")
+        return VideoPathsList, videoNames
 
 
 def RemoveButton():
 
-    selectedVideos = videoList.curselection()
+    selectedVideos = VideoTextBox.curselection()
 
     for videos in selectedVideos[::-1]:
-        del videoCollection[videos]
+        del VideoPathsList[videos]
         del videoNames[videos]
-
-    print(f"Paths: {videoCollection}\nVideos: {videoNames}")
     
 def VideoBoxListRefresh():
 
-    videoList.delete(0,END)
-    
-    for video in range(len(videoNames))[::-1]:
-        videoList.insert(0, videoNames[video])
+    VideoTextBox.delete(0,END)
 
-    #print(videoCollection, videoNames)
+    for video in range(len(videoNames))[::-1]:
+        VideoTextBox.insert(0, videoNames[video])
 
 def Output():
 
     filepath = filedialog.askdirectory(title = "Choose an Output Folder.")
 
-    if filepath != "":  
+    # Checks if user accepted an output folder.
+    # If they cancelled, do not make textfield empty
+    if filepath != "":
+
         try:
+
             outputPath.delete(0,END)
             outputPath.insert(0,filepath)
+
         except Exception as e:
+
             print(e) 
     else:
         return
@@ -95,11 +103,9 @@ def Convert():
 
     try:
 
-        print(f"videoNames: {videoNames}\nvideoList: {videoList.get(0, END)}\nvideoCollection: {videoCollection}\n")
+        print(f"videoNames: {videoNames}\nVideoTextBox: {VideoTextBox.get(0, END)}\nVideoPathsList: {VideoPathsList}\n")
 
-        #videoNum, audioNum, framesNum = Cvrt.StringToValue(videoBitRate.get(), audioBitRate.get(), frames.get())
-
-        Cvrt.ConvertVideos(window, videoCollection, videoNames, outputPath.get(), videoBitRate.get(), audioBitRate.get(), frames.get())
+        Cvrt.ConvertVideos(window, VideoPathsList, videoNames, outputPath.get(), videoBitRate.get(), audioBitRate.get(), frames.get())
 
     except Exception as e:
         print(e)
@@ -114,6 +120,7 @@ RemoveFileButton = Button(window, text="Remove Videos",padx=5, command=lambda:[R
 # ===============
 # Output Folder
 # ===============
+
 OuputLabel = Label(window, text="Output Path:",bg=mainColor, fg=textColor).grid(row=1,column=0,padx=5, pady=5)
 
 OutputFilebutton = Button(window, text="Open Folder",padx=5, command=Output).grid(row = 1, column= 1, pady=5)
@@ -122,9 +129,8 @@ outputPath = Entry(window, width = 70)
 outputPath.config(bd=2,relief="sunken")
 outputPath.grid(row=1,column=2,padx=2, pady=5)
 
-
 # ===============
-# Options & Export Button
+# Options
 # ===============
 
 videoBitRate = Spinbox(window, width=7, from_=1, to=10000)
@@ -135,14 +141,21 @@ audioBitRate = Spinbox(window,width=7, from_=1, to=10000)
 audioBitRate.place(x=190,y=40)
 audioBitRateLabel = Label(window,text="Audio Bitrate (kbps)",bg=mainColor,fg=textColor).place(x=250,y=40)
 
-
 frames = Spinbox(window, width=4, from_=1, to=10000)
 frames.place(x=370,y=40)
 framesLabel = Label(window,text="Frames",bg=mainColor,fg=textColor).place(x=413,y=40)
 
+renderIterations = Spinbox(window, width=2, from_=1, to=10000)
+renderIterations.place(x=470,y=40)
+renderIterationsLabel = Label(window,text="Render Iterations",bg=mainColor,fg=textColor).place(x=500,y=40)
+
+# ===============
+# Export Stuff
+# ===============
+
 exportButton = Button(window, text="Start Jpeg-ifying", command=Convert, compound=TOP).place(x=488,y=90)
 
-videoList = Listbox(window,width=93, height=13, relief="sunken",borderwidth=2,selectmode="multiple")
-videoList.place(x=20,y=120)
+VideoTextBox = Listbox(window,width=93, height=13, relief="sunken",borderwidth=2,selectmode="multiple")
+VideoTextBox.place(x=20,y=120)
 
 window.mainloop()

@@ -4,7 +4,7 @@ from tkinter import messagebox
 from pathlib import Path
 
 
-def VideoManager(videoCollection, videoNames, windowRoot):
+def AddVideoManager(videoCollection, videoNames, windowRoot):
 
 
     #Gets File Path & Files
