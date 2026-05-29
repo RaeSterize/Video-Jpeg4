@@ -35,6 +35,8 @@ ProcessingText = None
 QueueVideoTitle = "..."
 remaining = None
 
+CREATE_NO_WINDOW = 0x08000000
+
 def ConvertVideos(root, getInputVideos, getInputPaths, getOutputPath, getVideoBitRate, getAudioBitRate, getFrames):
     pass
 
@@ -244,10 +246,6 @@ def ConvertVideos(root, getInputVideos, getInputPaths, getOutputPath, getVideoBi
         remaining = 100 / videos
         print(f"Remaining: {remaining}")
 
-        #vidioBRStr = str(videoBR)
-        #audioBRStr = str(audioBR)
-        #fpsStr = str(fps)
-
         # Adding options to a string for ffmpeg commmand
         options = f'-b:v {str(videoBR)}k -b:a {str(audioBR)}k -r {str(fps)}'
 
@@ -291,7 +289,7 @@ def FFmpegThread():
         print("Command Line Set!!!")
 
         # Starts converting
-        subprocess.run(ffmpeg_cmd, check=True)
+        subprocess.run(ffmpeg_cmd, check=True, creationflags=CREATE_NO_WINDOW)
         app.after(20, VideoQueue())
         print("Conversion Finished!")
 

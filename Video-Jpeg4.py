@@ -8,7 +8,6 @@ import ctypes
 window = Tk()
 
 
-icon = PhotoImage(file="Images/icon.png")
 myappid = 'mycompany.myproduct.subproduct.version'
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
@@ -27,7 +26,8 @@ VideoPathsList = None
 window.resizable(False, False)
 window.geometry("610x360")
 window.title("Video Jpeg4 (Pre-Release v1.0)")
-window.iconphoto(True, icon)
+window.iconbitmap("Images/icon.ico")
+#window.iconphoto(True, icon)
 window.config(background=mainColor)
 
 # ===============
